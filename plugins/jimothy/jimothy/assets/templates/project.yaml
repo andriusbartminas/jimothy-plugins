@@ -1,0 +1,9 @@
+version: 2
+name: "PROJECT NAME"
+summary: "ONE LINE ON WHAT THIS PROJECT IS FOR."
+status: active
+owner: "OWNER"
+gsd: false
+commit: true
+ship_at: null
+links: {}

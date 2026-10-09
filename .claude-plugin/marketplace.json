@@ -1,0 +1,17 @@
+{
+  "name": "jimothy-plugins",
+  "owner": {
+    "name": "Andrius Bartminas"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for Jimothy, the macOS command centre for AI projects."
+  },
+  "plugins": [
+    {
+      "name": "jimothy",
+      "source": "./plugins/jimothy",
+      "description": "Keeps a project visible and steerable from Jimothy: asks, running tasks, priorities and session logs in .planning/jimothy/, plus hooks that show permission waits and catch buried questions.",
+      "version": "0.1.0"
+    }
+  ]
+}

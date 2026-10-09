@@ -1,0 +1,18 @@
+{
+  "description": "Jimothy: mark a session waiting while a permission prompt is open, clear it when the session moves on, and send back once a reply that ends with a buried question. All act only in projects with .planning/jimothy/.",
+  "hooks": {
+    "PermissionRequest": [
+      { "matcher": "", "hooks": [ { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/jimothy/hooks/jimothy-permission-now.sh", "timeout": 5, "async": true } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": "", "hooks": [ { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/jimothy/hooks/jimothy-permission-clear.sh", "timeout": 5, "async": true } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/jimothy/hooks/jimothy-permission-clear.sh", "timeout": 5, "async": true } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/jimothy/hooks/jimothy-no-buried-question.sh", "timeout": 10 } ] },
+      { "hooks": [ { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/jimothy/hooks/jimothy-permission-clear.sh", "timeout": 5, "async": true } ] }
+    ]
+  }
+}

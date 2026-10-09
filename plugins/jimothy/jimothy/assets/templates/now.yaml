@@ -1,0 +1,11 @@
+version: 2
+session: SESSION
+agent: claude-code
+task: "TASK NAME"
+state: running
+started_at: YYYY-MM-DDTHH:MM:00+00:00
+updated_at: YYYY-MM-DDTHH:MM:00+00:00
+branch: BRANCH
+phase: null
+plan: null
+ask: null
