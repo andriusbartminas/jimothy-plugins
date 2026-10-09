@@ -22,7 +22,7 @@ If you installed the skill or its hooks by hand before, remove those copies firs
 
 ## Privacy
 
-The skill and hooks run inside Claude Code on your Mac. They read and write only files under `.planning/jimothy/` in your projects, and send nothing anywhere.
+The skill and hooks run inside Claude Code on your Mac and send nothing anywhere. They read and write files under `.planning/jimothy/` in your projects, and answers waiting for an agent in the project's git folder (`.git/jimothy/inbox`). The buried-question hook also reads the current session's transcript, to check how the last reply ended.
 
 ## Licence
 
