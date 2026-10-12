@@ -8,8 +8,16 @@ set -euo pipefail
 
 INPUT=$(cat || true)
 
+# Outside a Jimothy project do nothing at all, before any interpreter starts: the project folder is
+# whatever repo the session was opened in, so nothing in it may run here.
+dir=$(printf '%s' "$INPUT" | grep -o '"cwd" *: *"[^"\\]*"' | head -1 | sed 's/.*: *"//; s/"$//' || true)
+dir=${dir:-${CLAUDE_PROJECT_DIR:-$PWD}}
+[ -d "$dir/.planning/jimothy" ] || exit 0
+
 # Always exit 0 so Claude Code is never blocked by this observer hook.
-python3 - "$INPUT" <<'PY' || true
+# -I (isolated mode) keeps the project folder and PYTHON* variables off the import path, so a json.py
+# or re.py in a cloned repo cannot run as the owner.
+python3 -I - "$INPUT" <<'PY' || true
 import json, os, re, subprocess, sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,8 +33,19 @@ jimothy = cwd / ".planning" / "jimothy"
 if not jimothy.is_dir():
     sys.exit(0)
 
+# A symlinked folder or file in a repo (committed, or made by an agent) must never redirect a write
+# to somewhere else the owner can write, so refuse them all.
 now_dir = jimothy / "now"
+if any(p.is_symlink() for p in (cwd / ".planning", jimothy, now_dir)):
+    sys.exit(0)
 now_dir.mkdir(parents=True, exist_ok=True)
+
+def safe_write(path: Path, text: str) -> None:
+    if path.is_symlink():
+        return
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o644)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(text)
 
 session = str(data.get("session_id") or "claude")[:64]
 safe = re.sub(r"[^A-Za-z0-9._-]", "-", session) or "claude"
@@ -52,16 +71,19 @@ def set_field(src: str, key: str, value: str) -> str:
         return pat.sub(line, src, count=1)
     return src.rstrip() + "\n" + line + "\n"
 
-if target.exists():
+if target.is_symlink():
+    pass
+elif target.exists():
     text = target.read_text(encoding="utf-8")
     text = set_field(text, "state", "waiting")
     text = set_field(text, "updated_at", json.dumps(stamp))
     text = set_field(text, "waiting_on", "permission")
     text = set_field(text, "agent", "claude-code")
-    target.write_text(text, encoding="utf-8")
+    safe_write(target, text)
 else:
     branch_line = json.dumps(branch) if branch else "null"
-    target.write_text(
+    safe_write(
+        target,
         "\n".join(
             [
                 "version: 2",
@@ -80,11 +102,10 @@ else:
                 "",
             ]
         ),
-        encoding="utf-8",
     )
 
 # Tiny sidecar so Jimothy soft-reload can notice quickly (optional).
-(now_dir / ".jimothy-hook-beat").write_text(f"{tool}\n{stamp}\n", encoding="utf-8")
+safe_write(now_dir / ".jimothy-hook-beat", f"{tool}\n{stamp}\n")
 PY
 
 exit 0

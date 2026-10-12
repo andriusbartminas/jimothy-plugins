@@ -34,6 +34,9 @@ now_dir = cwd / ".planning" / "jimothy" / "now"
 session = str(data.get("session_id") or "claude")[:64]
 safe = re.sub(r"[^A-Za-z0-9._-]", "-", session) or "claude"
 target = now_dir / f"{safe}.yaml"
+# Never follow a symlink: not the folders, not this session's file, not the temp file below.
+if any(p.is_symlink() for p in (cwd / ".planning", cwd / ".planning" / "jimothy", now_dir, target)):
+    sys.exit(0)
 if not target.is_file():
     sys.exit(0)
 
@@ -65,7 +68,10 @@ if re.search(r"(?m)^updated_at:", text):
 else:
     text = text.rstrip() + f"\nupdated_at: {json.dumps(stamp)}\n"
 tmp = target.with_suffix(".yaml.tmp")
-tmp.write_text(text, encoding="utf-8")
+tmp.unlink(missing_ok=True)   # removes a planted symlink itself, never what it points at
+fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
+with os.fdopen(fd, "w", encoding="utf-8") as f:
+    f.write(text)
 os.replace(tmp, target)
 PY
 
