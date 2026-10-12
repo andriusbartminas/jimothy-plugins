@@ -26,6 +26,16 @@ record_session() {
   tr -d '\n' < "$1" | sed -n 's/.*"session" *: *"\([^"]*\)".*/\1/p'
 }
 
+# Ids and session names come from the agent's command line, and become file names in the inbox. Accept only a
+# plain name: ASCII letters, digits, `.`, `_` and `-`, at most 200 long, no `..`, not `.` alone. This is the
+# same rule the app applies to an ask's id (AgentInbox.isSafeID).
+require_name() {
+  local what="$1" value="$2"
+  case "$value" in '' | . | *..*) ;; *) if [ "${#value}" -le 200 ] && ( LC_ALL=C; case "$value" in *[!A-Za-z0-9._-]*) exit 1 ;; esac ); then return 0; fi ;; esac
+  echo "INVALID $what: use only letters, digits, . _ and - (at most 200, no ..)" >&2
+  exit 2
+}
+
 cmd="${1:-}"
 # When JIMOTHY_INBOX_LOG names a file, each call is noted there (epoch seconds, then the arguments). The skill
 # evals use it to see what an agent did; it is off otherwise and nothing in the script reads it back.
@@ -60,6 +70,7 @@ case "$cmd" in
   watch)
     session="${2:?session}"
     deadline="${3:?deadline (epoch seconds)}"
+    require_name session "$session"
     inbox=$(inbox_dir) || { echo "WAIT-ENDED not a git checkout"; exit 0; }
     # Skip lists only matter while an agent keeps waiting; drop the ones nobody has touched for a day.
     find "$inbox" -maxdepth 1 -name 'skipped.*' -mmin +1440 -exec rm -f {} + 2>/dev/null
@@ -83,6 +94,8 @@ case "$cmd" in
   claim)
     id="${2:?id}"
     session="${3:?session}"
+    require_name id "$id"
+    require_name session "$session"
     inbox=$(inbox_dir) || exit 1
     mkdir -p "$inbox/claimed"
     # A hard link fails if the target exists, so of several agents claiming the same record exactly one
@@ -100,6 +113,8 @@ case "$cmd" in
   skip)
     id="${2:?id}"
     session="${3:?session}"
+    require_name id "$id"
+    require_name session "$session"
     inbox=$(inbox_dir) || exit 1
     mkdir -p "$inbox"
     printf '%s\n' "$id" >> "$inbox/skipped.$session"

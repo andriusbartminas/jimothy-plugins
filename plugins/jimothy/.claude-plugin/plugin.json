@@ -1,6 +1,6 @@
 {
   "name": "jimothy",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Keeps a project visible and steerable from Jimothy, the macOS command centre for AI projects: asks, running tasks, priorities and session logs in .planning/jimothy/, plus hooks that show permission waits and catch buried questions.",
   "author": {
     "name": "Andrius Bartminas"
