@@ -46,7 +46,7 @@ Exact formats, field meanings and examples are in [references/file-format.md](re
 2. Write `now/<session>.yaml` with the task you are about to do, so the dashboard shows the project as working.
 3. Read every ask with `status: answered`, including early answers to `upcoming` asks. These are decisions the human made while you were away; act on them first. If you had carried on with an `assumed` option and the human chose differently, revisit that work before anything else. Undoing a wrong assumption early is cheap; building on it is not.
 4. Re-check your own `open` and `upcoming` asks with an `asked_at` more than 24 hours ago (`asked_by` is your agent; on a shared project, also check `session`). Projects move at dozens of PRs a day, so a day-old ask has often been overtaken, and an old ask that nobody updates looks as urgent as a new one. Either bring it up to date (cost, context, `needed_by`, options) or, if it no longer matters, close it with a `## Resolution` saying why. Leave other agents' and people's asks alone.
-5. Read `priorities.yaml`. Pick work from the top of `now` first, then `next`. If the user in this chat asks for something else, do what they ask; the chat wins over the file.
+5. Read `priorities.yaml`. Pick work from the top of `now` first, then `next`. If a `now` item asks you to fix tracking (reconcile planning with what shipped, add missing logs, fix an unreadable file), do it before any other work, because the board is wrong until then. If the user in this chat asks for something else, do what they ask; the chat wins over the file.
 6. If the project uses GSD, read the frontmatter of `.planning/STATE.md` for the current position. Do not copy roadmap or state into Jimothy files; Jimothy reads GSD directly.
 
 ### 2. During work
